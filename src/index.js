@@ -48,6 +48,17 @@ async function getSerdiPayToken() {
 }
 
 /**
+ * 0. GET / (Welcome)
+ */
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Bienvenue sur l\'API de pont GeoCongo-SerdiPay',
+        version: '1.0.0',
+        status: 'UP'
+    });
+});
+
+/**
  * 1. GET /get_token
  */
 app.get('/get_token', async (req, res) => {
