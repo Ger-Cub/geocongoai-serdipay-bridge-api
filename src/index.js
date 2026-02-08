@@ -3,6 +3,8 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const helmet = require('helmet');
+const swaggerUi = require('swagger-ui-express');
+const specs = require('./swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,6 +13,9 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+// Serve Swagger UI at /docs
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 // In-memory token storage
 let cachedToken = null;
@@ -48,18 +53,104 @@ async function getSerdiPayToken() {
 }
 
 /**
- * 0. GET / (Welcome)
+ * @swagger
+ * tags:
+ *   name: General
+ *   description: General operations
+ * components:
+ *   schemas:
+ *     PaymentInitRequest:
+ *       type: object
+ *       required:
+ *         - clientPhone
+ *         - amount
+ *         - currency
+ *         - telecom
+ *       properties:
+ *         clientPhone:
+ *           type: string
+ *           description: The client's phone number (e.g., "0991102448").
+ *           example: "0991102448"
+ *         amount:
+ *           type: number
+ *           format: float
+ *           description: The payment amount.
+ *           example: 1.00
+ *         currency:
+ *           type: string
+ *           description: The currency (e.g., "USD", "CDF").
+ *           example: "USD"
+ *         telecom:
+ *           type: string
+ *           description: The telecom operator (e.g., "AM" for Airtel Money).
+ *           example: "AM"
+ *     Error:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *           description: Error message.
+ *           example: "Missing required fields: clientPhone, amount, currency, telecom"
+ * security:
+ *   - ApiKeyAuth: []
+ *
+ * /:
+ *   get:
+ *     summary: Welcome message and API status
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: A welcome message and API status.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Bienvenue sur l'API de pont GeoCongo-SerdiPay"
+ *                 version:
+ *                   type: string
+ *                   example: "1.0.0"
+ *                 status:
+ *                   type: string
+ *                   example: "UP"
+ *                 docs:
+ *                   type: string
+ *                   example: "/docs"
  */
 app.get('/', (req, res) => {
     res.json({
         message: 'Bienvenue sur l\'API de pont GeoCongo-SerdiPay',
         version: '1.0.0',
-        status: 'UP'
+        status: 'UP',
+        docs: '/docs'
     });
 });
 
 /**
- * 1. GET /get_token
+ * @swagger
+ * /get_token:
+ *   get:
+ *     summary: Retrieves a SerdiPay access token
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved access token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 access_token:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       500:
+ *         description: Error retrieving token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 app.get('/get_token', async (req, res) => {
     try {
@@ -71,7 +162,48 @@ app.get('/get_token', async (req, res) => {
 });
 
 /**
- * 2. POST /payement_init
+ * @swagger
+ * /payement_init:
+ *   post:
+ *     summary: Initiates a payment through SerdiPay
+ *     tags: [General]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/PaymentInitRequest'
+ *     responses:
+ *       200:
+ *         description: Payment successfully initiated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionId:
+ *                   type: string
+ *                   example: "SDP_TRANS_123456789"
+ *                 status:
+ *                   type: string
+ *                   example: "PENDING"
+ *                 message:
+ *                   type: string
+ *                   example: "Payment initiated successfully."
+ *       400:
+ *         description: Missing required fields or invalid input.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 app.post('/payement_init', async (req, res) => {
     const { clientPhone, amount, currency, telecom } = req.body;
@@ -106,7 +238,33 @@ app.post('/payement_init', async (req, res) => {
 });
 
 /**
- * 3. POST /webhook
+ * @swagger
+ * /webhook:
+ *   post:
+ *     summary: Receives SerdiPay webhooks and relays them to GeoCongo
+ *     tags: [General]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             description: SerdiPay webhook payload.
+ *             example:
+ *               transactionId: "SDP_TRANS_123456789"
+ *               status: "COMPLETED"
+ *               amount: 1.00
+ *               currency: "USD"
+ *               clientPhone: "0991102448"
+ *     responses:
+ *       200:
+ *         description: Webhook successfully received and relayed.
+ *       500:
+ *         description: Error relaying webhook.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 app.post('/webhook', async (req, res) => {
     const serdipayData = req.body;
@@ -125,6 +283,24 @@ app.post('/webhook', async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [General]
+ *     responses:
+ *       200:
+ *         description: API is up and running.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "UP"
+ */
 // Health check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP' });
