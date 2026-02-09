@@ -43,6 +43,7 @@ async function getSerdiPayToken() {
             // If expires_in is not provided, we might need a default (e.g., 1 hour)
             const expiresIn = (response.data.expires_in || 3600) * 1000;
             tokenExpiresAt = Date.now() + expiresIn;
+            console.log('SerdiPay Token fetched successfully. Token:', cachedToken ? cachedToken.substring(0, 10) + '...' : 'N/A', 'Expires at:', new Date(tokenExpiresAt).toISOString());
             return cachedToken;
         }
         throw new Error('Failed to retrieve access token from SerdiPay');
@@ -229,10 +230,23 @@ app.post('/payement_init', async (req, res) => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        console.log('Payment initialized:', response.data);
+        console.log('Payment initiated with SerdiPay. Response status:', response.status, 'Data:', response.data);
         res.status(response.status).json(response.data);
     } catch (error) {
-        console.error('Payment init error:', error.response?.data || error.message);
+        console.error('Payment init error:');
+        if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            console.error('  Status:', error.response.status);
+            console.error('  Headers:', error.response.headers);
+            console.error('  Data:', error.response.data);
+        } else if (error.request) {
+            // The request was made but no response was received
+            console.error('  Request:', error.request);
+        } else {
+            // Something happened in setting up the request that triggered an Error
+            console.error('  Message:', error.message);
+        }
         res.status(error.response?.status || 500).json(error.response?.data || { error: 'Internal Error' });
     }
 });
