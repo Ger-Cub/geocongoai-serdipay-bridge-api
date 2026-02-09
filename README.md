@@ -1,6 +1,6 @@
 # GeoCongo SerdiPay Bridge API
 
-This API acts as a gateway between GeoCongo applications and the SerdiPay payment system.
+This API acts as a gateway between GeoCongo API applications and the SerdiPay payment system.
 
 ## Features
 
