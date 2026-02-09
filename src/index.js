@@ -69,8 +69,8 @@ async function getSerdiPayToken() {
  *       properties:
  *         clientPhone:
  *           type: string
- *           description: The client's phone number (e.g., "0991102448").
- *           example: "0991102448"
+ *           description: The client's phone number (e.g., "243991102448").
+ *           example: "243991102448"
  *         amount:
  *           type: number
  *           format: float
@@ -255,7 +255,7 @@ app.post('/payement_init', async (req, res) => {
  *               status: "COMPLETED"
  *               amount: 1.00
  *               currency: "USD"
- *               clientPhone: "0991102448"
+ *               clientPhone: "243991102448"
  *     responses:
  *       200:
  *         description: Webhook successfully received and relayed.
