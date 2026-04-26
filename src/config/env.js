@@ -5,9 +5,8 @@ const requiredEnvVars = [
     'SERDIPAY_API_PASSWORD',
     'SERDIPAY_MERCHANT_CODE',
     'SERDIPAY_MERCHANT_PIN',
-    'GEOCONGO_CALLBACK_URL',
-    'GEOCONGO_API_KEY',
-    'BRIDGE_API_KEY'
+    'BRIDGE_API_KEY',
+    'CLIENT_CALLBACK_API_KEY'
 ];
 
 exports.validateEnv = () => {

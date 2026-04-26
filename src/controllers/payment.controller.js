@@ -10,14 +10,23 @@ exports.getToken = async (req, res) => {
 };
 
 exports.initiatePayment = async (req, res) => {
-    const { clientPhone, amount, currency, telecom } = req.body;
+    const { clientPhone, amount, currency, telecom, callback_url } = req.body;
 
     if (!clientPhone || !amount || !currency || !telecom) {
-        return res.status(400).json({ error: 'Missing required fields: clientPhone, amount, currency, telecom' });
+        return res.status(400).json({ 
+            error: 'Missing required fields: clientPhone, amount, currency, telecom' 
+        });
+    }
+
+    if (!callback_url) {
+        return res.status(400).json({ 
+            error: 'Missing required field: callback_url (where to send payment response)' 
+        });
     }
 
     try {
-        const response = await serdiPayService.initiatePayment({ clientPhone, amount, currency, telecom });
+        const paymentData = { clientPhone, amount, currency, telecom, callback_url };
+        const response = await serdiPayService.initiatePayment(paymentData);
         console.log('Payment initiated with SerdiPay. Response status:', response.status);
         res.status(response.status).json(response.data);
     } catch (error) {
