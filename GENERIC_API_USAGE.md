@@ -18,7 +18,7 @@ Header: x-api-key: <BRIDGE_API_KEY>
 
 ### 1. Initier un paiement
 
-**Endpoint:** `POST /payment/initiate`
+**Endpoint:** `POST /payment_init`
 
 **Headers requis:**
 ```http
@@ -73,10 +73,17 @@ Content-Type: application/json
   "clientPhone": "+243812345678",
   "amount": 100,
   "currency": "USD",
+  "telecom": "AM",
   "callback_url": "https://your-app.com/payment-callback",
   "timestamp": "2024-01-15T10:30:00Z"
 }
 ```
+
+**Valeurs possibles pour `telecom`:**
+- `AM` - Airtel Money
+- `OM` - Orange Money
+- `MP` - Mpesa/Vodacom
+- `AF` - Africell
 
 ## 📝 Exemple complet
 
@@ -85,7 +92,7 @@ Content-Type: application/json
 ```javascript
 // 1. Initier un paiement
 const initiatePayment = async () => {
-  const response = await fetch('https://bridge-api.com/payment/initiate', {
+  const response = await fetch('https://bridge-api.com/payment_init', {
     method: 'POST',
     headers: {
       'api_key': 'your_bridge_api_key',
@@ -114,11 +121,29 @@ app.post('/api/payment-callback', (req, res) => {
   
   // Traiter le paiement (mise à jour BDD, notification client, etc.)
   if (paymentData.status === 'SUCCESS') {
+    console.log(`Paiement reçu de ${paymentData.telecom}: ${paymentData.amount} ${paymentData.currency}`);
     // Marquer la commande comme payée
+    // Vous pouvez utiliser paymentData.telecom (AM, OM, MP, AF) pour des traitement spécifiques
   }
   
   res.status(200).json({ status: 'OK' });
 });
+```
+
+### Exemple cURL - Production
+
+```bash
+# Initier un paiement en production
+curl -X POST https://serdipay.geocongoai.com/payment_init \
+  -H "api_key: your_bridge_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clientPhone": "+243812345678",
+    "amount": 100,
+    "currency": "USD",
+    "telecom": "MP",
+    "callback_url": "https://your-app.com/api/payment-callback"
+  }'
 ```
 
 ## 🔄 Flux de paiement
