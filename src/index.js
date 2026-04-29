@@ -29,4 +29,6 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Bridge API GeoCongo-SerdiPay démarrée sur le port ${PORT}`);
+    console.log(`📍 URL de développement: http://localhost:${PORT}`);
+    console.log(`📚 Documentation Swagger: http://localhost:${PORT}/docs`);
 });
