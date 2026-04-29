@@ -1,4 +1,5 @@
 const requiredEnvVars = [
+    'SERDIPAY_BASE_URL',
     'SERDIPAY_MERCHANT_EMAIL',
     'SERDIPAY_MERCHANT_PASSWORD',
     'SERDIPAY_API_ID',

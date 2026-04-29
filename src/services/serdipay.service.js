@@ -4,7 +4,7 @@ class SerdiPayService {
     constructor() {
         this.cachedToken = null;
         this.tokenExpiresAt = null;
-        this.baseUrl = 'https://serdipay.com/api/public-api/v1';
+        this.baseUrl = process.env.SERDIPAY_BASE_URL;
     }
 
     async getToken() {
